@@ -12,7 +12,7 @@
     "node-telegram-bot-api": "^0.56.0",
     "dotenv": "^10.0.0",
     "axios": "^1.6.0",
-    "punycode": "^2.1.1" // This line is added by npm install
+    "punycode": "^2.1.1"
   },
   "scripts": {
     "start": "node app.js"
