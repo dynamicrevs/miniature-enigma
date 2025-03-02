@@ -132,7 +132,21 @@ bot.on('message', async (msg) => {
       const report = await engagementService.generateWeeklyReport();
       bot.sendMessage(chatId, report);
       break;
-
+    case '/maintenance':
+      if (!admins.includes(msg.from.username)) {
+        bot.sendMessage(chatId, 'You are not authorized');
+        return;
+      }
+      const action = text.split(' ')[1]?.toLowerCase(); // Extract enable/disable argument
+      if (action === 'enable') {
+        maintenanceMode = true;
+        bot.sendMessage(chatId, 'Maintenance mode enabled');
+      } else if (action === 'disable') {
+        maintenanceMode = false;
+        bot.sendMessage(chatId, 'Maintenance mode disabled');
+      } else {
+        bot.sendMessage(chatId, 'Usage: /maintenance [enable|disable]');
+      }
     default:
       bot.sendMessage(chatId, `Available commands:\n` +
         `/add_sub - Add a subreddit with description\n` +
@@ -140,7 +154,8 @@ bot.on('message', async (msg) => {
         `/add_worker - Clone a new Worker (same as /clone_worker)\n` +
         `/clone_worker - Clone a new Worker\n` +
         `/delete_worker - Delete a Worker by ID\n` +
-        `/status - Check all Worker statuses\n` +
+        `/status - Check all Worker statuses\n`  
+        `/maintainance - authorised only for admins\n` +
         `/report - Get weekly engagement report`);
       break;
   }
