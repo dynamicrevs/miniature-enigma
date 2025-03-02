@@ -7,7 +7,7 @@ const engagementService = require('../services/engagementService');
 const workerService = require('../services/workerService');
 const axios = require('axios');
 
-const bot = new TelegramBot(config.telegramBotToken, { polling: true });
+const bot = new TelegramBot(config.telegramBotToken, { polling: true, cancelation: true });
 const admins = ['@Unknownrats', '@Bharathbhushanc'];
 
 let cloningState = {}; // Track users in the cloning process
@@ -203,6 +203,9 @@ async function deployNewWorker(workerId, creds) {
   console.log(`Worker ${workerId} deployed: ${response.data.id}`);
 }
 
+bot.on('polling_error', (error) => {
+  console.error('Telegram polling error:', error);
+});
 // Function to delete a Worker
 async function deleteWorker(workerId) {
   await axios.delete(`https://api.render.com/v1/services/${workerId}`, {
