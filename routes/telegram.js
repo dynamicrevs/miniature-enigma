@@ -155,7 +155,7 @@ bot.on('message', async (msg) => {
         `/clone_worker - Clone a new Worker\n` +
         `/delete_worker - Delete a Worker by ID\n` +
         `/status - Check all Worker statuses\n`  
-        `/maintainance - authorised only for admins\n` +
+        `/maintenance - authorised only for admins\n` +
         `/report - Get weekly engagement report`);
       break;
   }
