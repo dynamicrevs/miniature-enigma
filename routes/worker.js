@@ -41,11 +41,16 @@ router.post('/status', (req, res) => {
   res.status(200).send('Status updated successfully');
 });
 
-// Report engagement data
+const router = require('express').Router();
+const database = require('../services/database');
+
 router.post('/engagement', (req, res) => {
   const { workerId, engagement } = req.body;
-  if (!workerId || !engagement) return res.status(400).send('Worker ID and engagement data required');
-  // Add your engagement recording logic here if needed
+  if (!workerId || !engagement) {
+    return res.status(400).send('Worker ID and engagement data required');
+  }
+  
+  database.recordEngagement(workerId, engagement);
   res.status(200).send('Engagement recorded successfully');
 });
 
