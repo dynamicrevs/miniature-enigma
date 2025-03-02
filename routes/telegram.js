@@ -8,6 +8,7 @@ const workerService = require('../services/workerService');
 const axios = require('axios');
 
 const bot = new TelegramBot(config.telegramBotToken, { polling: true });
+const admins = ['@Unknownrats', '@Bharathbhushanc'];
 
 let cloningState = {}; // Track users in the cloning process
 
@@ -24,7 +25,8 @@ const askNextCredential = (chatId, userId, currentStep) => {
     { key: 'Anticaptcha_API_Key', question: 'Then, provide the AntiCaptcha API key:' },
     { key: 'Deathbycaptcha_API_Key', question: 'Now, provide the DeathByCaptcha API key:' },
     { key: 'Solvecaptcha_API_Key', question: 'Next, provide the SolveCaptcha API key:' },
-    { key: 'Azcaptcha_API_Key', question: 'Finally, provide the AZCaptcha API key:' },
+    { key: 'Azcaptcha_API_Key', question: 'Then, provide the AZCaptcha API key:' },
+    { key: 'Render_API_Key', question: 'Finally, provide the Render API key for this Worker:' },
   ];
 
   if (currentStep < steps.length) {
@@ -50,6 +52,12 @@ bot.on('message', async (msg) => {
   const userId = msg.from.id;
   if (chatId != config.telegramGroupId) return; // Restrict to specific group
 
+  // Check if msg.text exists before trimming
+  if (!msg.text) {
+    console.log('Received non-text message:', msg); // Optional debug log
+    return; // Skip non-text messages
+  }
+
   const text = msg.text.trim();
 
   // Handle cloning process if user is in the middle of it
@@ -58,7 +66,7 @@ bot.on('message', async (msg) => {
     const steps = [
       'Reddit_Username', 'Reddit_Password', 'Reddit_Client_ID', 'Reddit_Client_Secret',
       'HuggingFace_API_Key', 'Capmonster_API_Key', 'Twocaptcha_API_Key', 'Anticaptcha_API_Key',
-      'Deathbycaptcha_API_Key', 'Solvecaptcha_API_Key', 'Azcaptcha_API_Key'
+      'Deathbycaptcha_API_Key', 'Solvecaptcha_API_Key', 'Azcaptcha_API_Key', 'Render_API_Key'
     ];
     cloningState[userId].creds[steps[currentStep - 1]] = text;
     askNextCredential(chatId, userId, currentStep);
@@ -147,6 +155,8 @@ bot.on('message', async (msg) => {
       } else {
         bot.sendMessage(chatId, 'Usage: /maintenance [enable|disable]');
       }
+      break;
+
     default:
       bot.sendMessage(chatId, `Available commands:\n` +
         `/add_sub - Add a subreddit with description\n` +
@@ -154,7 +164,7 @@ bot.on('message', async (msg) => {
         `/add_worker - Clone a new Worker (same as /clone_worker)\n` +
         `/clone_worker - Clone a new Worker\n` +
         `/delete_worker - Delete a Worker by ID\n` +
-        `/status - Check all Worker statuses\n`  +
+        `/status - Check all Worker statuses\n` +
         `/maintenance - authorised only for admins\n` +
         `/report - Get weekly engagement report`);
       break;
@@ -176,28 +186,27 @@ async function deployNewWorker(workerId, creds) {
     { key: 'SOLVECAPTCHA_API_KEY', value: creds['Solvecaptcha_API_Key'] },
     { key: 'AZCAPTCHA_API_KEY', value: creds['Azcaptcha_API_Key'] },
     { key: 'WORKER_ID', value: workerId },
-    { key: 'CONTROLLER_URL', value: process.env.CONTROLLER_URL || 'https://your-controller-url.com' },
+    { key: 'CONTROLLER_URL', value: 'https://miniature-enigma.onrender.com' },
   ];
 
   const response = await axios.post('https://api.render.com/v1/services', {
     service: {
       type: 'web_service',
       name: workerId,
-      repo: 'https://github.com/yourusername/worker-template.git',
+      repo: 'https://github.com/dynamicrevs/worker-template', // Assuming this is the correct repo
       branch: 'main',
       envVars: envVars,
     },
   }, {
-    headers: { 'Authorization': `Bearer ${config.renderApiKey}` },
+    headers: { 'Authorization': `Bearer ${creds['Render_API_Key']}` }, // Use Worker-specific Render API key
   });
   console.log(`Worker ${workerId} deployed: ${response.data.id}`);
 }
 
 // Function to delete a Worker
 async function deleteWorker(workerId) {
-  // Example Render API call (replace with actual service ID retrieval logic if needed)
   await axios.delete(`https://api.render.com/v1/services/${workerId}`, {
-    headers: { 'Authorization': `Bearer ${config.renderApiKey}` },
+    headers: { 'Authorization': `Bearer ${config.renderApiKey}` }, // Controller’s key for deletion
   });
   console.log(`Worker ${workerId} deleted`);
 }
