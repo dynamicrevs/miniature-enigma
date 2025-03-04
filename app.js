@@ -1,8 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const config = require('../config/config');
-const workerRoutes = require('../routes/worker');
-const telegramRoutes = require('../routes/telegram');
+const config = require('./config/config');
+const workerRoutes = require('./routes/worker');
+const telegramRoutes = require('./routes/telegram');
 const axios = require('axios');
 
 const app = express();
