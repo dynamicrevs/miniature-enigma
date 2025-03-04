@@ -8,29 +8,6 @@ const workerService = require('../services/workerService');
 const axios = require('axios');
 const database = require('../database');
 
-
-// Handle callback queries (e.g., button presses)
-bot.on('callback_query', async (query) => {
-  const chatId = query.message.chat.id;
-  const data = query.data;
-
-  if (data.startsWith('approve_')) {
-    const targetUserId = data.split('_')[1];
-    await database.approveUser(targetUserId);
-    bot.sendMessage(chatId, `User ${targetUserId} has been approved.`);
-    bot.sendMessage(targetUserId, 'You have been granted access to the bot.');
-  } else if (data.startsWith('deny_')) {
-    const targetUserId = data.split('_')[1];
-    bot.sendMessage(chatId, `User ${targetUserId} access request denied.`);
-    bot.sendMessage(targetUserId, 'Your access request has been denied.');
-  } else if (data.startsWith('worker_')) {
-    const workerId = data.split('_')[1];
-    const worker = await database.getWorkerDetails(workerId);
-    bot.sendMessage(chatId, formatWorkerDetails(worker));
-  }
-});
-
-
 const bot = new TelegramBot(config.telegramBotToken, { polling: true, cancelation: true });
 const admins = ['@Unknownrats', '@Bharathbhushanc'];
 
@@ -53,6 +30,29 @@ const askNextCredential = (chatId, userId, currentStep) => {
     { key: 'Render_API_Key', question: 'Finally, provide the Render API key for this Worker:' },
   ];
 
+  
+// Handle callback queries (e.g., button presses)
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+
+  if (data.startsWith('approve_')) {
+    const targetUserId = data.split('_')[1];
+    await database.approveUser(targetUserId);
+    bot.sendMessage(chatId, `User ${targetUserId} has been approved.`);
+    bot.sendMessage(targetUserId, 'You have been granted access to the bot.');
+  } else if (data.startsWith('deny_')) {
+    const targetUserId = data.split('_')[1];
+    bot.sendMessage(chatId, `User ${targetUserId} access request denied.`);
+    bot.sendMessage(targetUserId, 'Your access request has been denied.');
+  } else if (data.startsWith('worker_')) {
+    const workerId = data.split('_')[1];
+    const worker = await database.getWorkerDetails(workerId);
+    bot.sendMessage(chatId, formatWorkerDetails(worker));
+  }
+});
+
+  
   if (currentStep < steps.length) {
     bot.sendMessage(chatId, steps[currentStep].question);
     cloningState[userId].step = currentStep + 1;
