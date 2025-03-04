@@ -6,6 +6,7 @@ const taskService = require('../services/taskService');
 const engagementService = require('../services/engagementService');
 const workerService = require('../services/workerService');
 const axios = require('axios');
+const database = require('./database');
 
 const bot = new TelegramBot(config.telegramBotToken, { polling: true, cancelation: true });
 const admins = ['@Unknownrats', '@Bharathbhushanc'];
@@ -156,7 +157,33 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, 'Usage: /maintenance [enable|disable]');
       }
       break;
-
+    case '/get_worker':
+      const workers = await database.getAllWorkers();
+      const keyboard = workers.map(worker => [{
+        text: `${worker.reddit_username} (ID: ${worker.id})`,
+        callback_data: `worker_${worker.id}`,
+      }]);
+      bot.sendMessage(chatId, 'Select a worker to view details:', {
+        reply_markup: { inline_keyboard: keyboard },
+      });
+      break;
+    case '/get_sub':
+      const subreddits = await database.getAllSubreddits();
+      let subMessage = 'Subreddits:\n';
+      subreddits.forEach(sub => {
+        const shortDesc = sub.description.substring(0, 50) + (sub.description.length > 50 ? '...' : '');
+        subMessage += `- /r/${sub.name}: ${shortDesc}\n`;
+      });
+      bot.sendMessage(chatId, subMessage);
+      break;
+    case '/get_promo_links':
+      const links = await database.getAllPromotionLinks();
+      let linkMessage = 'Promotion Links:\n';
+      links.forEach(link => {
+        linkMessage += `- ${link.url} (Keywords: ${link.keywords})\n`;
+      });
+      bot.sendMessage(chatId, linkMessage);
+      break;
     default:
       bot.sendMessage(chatId, `Available commands:\n` +
         `/add_sub - Add a subreddit with description\n` +
@@ -166,7 +193,10 @@ bot.on('message', async (msg) => {
         `/delete_worker - Delete a Worker by ID\n` +
         `/status - Check all Worker statuses\n` +
         `/maintenance - authorised only for admins\n` +
-        `/report - Get weekly engagement report`);
+        `/report - Get weekly engagement report` +
+        '/get_worker - Get complete list of workers ' +
+        '/get_sub - Get all the subreddits are used here' +
+        '/get_promo_links- Get the links thare being promoted');
       break;
   }
 });
@@ -206,6 +236,14 @@ async function deployNewWorker(workerId, creds) {
 bot.on('polling_error', (error) => {
   console.error('Telegram polling error:', error);
 });
+
+function formatWorkerDetails(worker) {
+  return `Worker ID: ${worker.id}\n` +
+         `Reddit Username: ${worker.reddit_username}\n` +
+         `API Keys: ${JSON.stringify(worker.api_keys)}\n` +
+         `Stats: ${JSON.stringify(worker.stats)}`;
+}
+
 // Function to delete a Worker
 async function deleteWorker(workerId) {
   await axios.delete(`https://api.render.com/v1/services/${workerId}`, {
