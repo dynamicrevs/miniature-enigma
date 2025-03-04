@@ -91,7 +91,10 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, `Subreddit "${subreddit}" added with description: "${description}"`);
       }
       break;
-
+    case '/start':
+      // New message for the /start command
+      bot.sendMessage(chatId, "Hey there! I'm your friendly Reddit Super Manager Bot, ready to help you manage your Reddit activities. What can I do for you?");
+      break;
     case '/add_link':
       bot.sendMessage(chatId, 'Please provide the link and keywords in this format: "https://example.com, keyword1, keyword2"');
       break;
@@ -193,10 +196,10 @@ bot.on('message', async (msg) => {
         `/delete_worker - Delete a Worker by ID\n` +
         `/status - Check all Worker statuses\n` +
         `/maintenance - authorised only for admins\n` +
-        `/report - Get weekly engagement report` +
-        '/get_worker - Get complete list of workers ' +
-        '/get_sub - Get all the subreddits are used here' +
-        '/get_promo_links- Get the links thare being promoted');
+        `/report - Get weekly engagement report\n` +
+        '/get_worker - Get complete list of workers\n' +
+        '/get_sub - Get all the subreddits are used here\n' +
+        '/get_promo_links- Get the links thare being promoted\n');
       break;
   }
 });
